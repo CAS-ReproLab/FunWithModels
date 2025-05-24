@@ -13,6 +13,7 @@ class Circuit:
         self.components= []
         self.nodes= set()
         self.voltage_sources= []
+        self.scopes= []
         
     def add_component(self, component): 
         self.components.append(component)
@@ -58,5 +59,8 @@ class Circuit:
         print("Node Voltages:")
         for node, voltage in self.node_voltages.items():
             print(f"  {node}: {voltage:.4f} V")
+            
+    def oscillosopes(self, scope): 
+        self.scopes.append(scope)
          
     
