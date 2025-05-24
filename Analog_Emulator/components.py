@@ -56,9 +56,36 @@ class Resistor:
             G[n1][n2]-= conductance
             G[n2][n1]-= conductance
             
+class Capacitor:
+    def __init__(self, capacitance, node1, node2):
+        self.C= capacitance
+        self.node1= node1
+        self.node2= node2
+        self.v_prev= 0.0 #voltage across the capacitor at the previous timestep
+        
+    def stamp(self, G, I , node_map, dt, voltage_lookup):
+        n1= node_map.get(self.node1)
+        n2= node_map.get(self.node2)
+        Gval= self.C / dt # backward Euler conductance
+        Vn1= voltage_lookup.get(self.node1, 0.0)
+        Vn2= voltage_lookup.get(self.node2, 0.0)
+        Ival= Gval * (Vn1 - Vn2) 
+        
+        if n1 is not None: 
+            G[n1][n1] += Gval
+            I[n1] += Ival
+            
+        if n2 is not None: 
+            G[n2][n2] += Gval
+            I[n2] -= Ival
+            
+        if n1 is not None and n2 is not None: 
+            G[n1][n2] -= Gval
+            G[n2][n1] -= Gval
+        
+            
 class Oscilloscope:
-    
-    def __intit__(self, node_name):
+    def __init__(self, node_name):
         self.node= node_name
         self.trace= [] # initialize the set to hold the voltage trace
     
