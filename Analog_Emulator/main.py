@@ -37,12 +37,14 @@ ckt.simulate()
 ckt.print_node_voltages()
 '''
 
-# Non-steady state simulation for 50 ms
-ckt.simulate_transient(dt= 0.001, T= 0.05)
+# Non-steady state simulation for 10 ms
+ckt.simulate_transient(dt= 0.0001, T= 0.01)
 
-
+'''
+# check the output
 print("Number of samples recorded:", len(osc.trace))
 print("First 10 values:", osc.trace[:10])
+'''
 
 # plot the results on the oscilloscope
 osc.plot(dt= 0.001)

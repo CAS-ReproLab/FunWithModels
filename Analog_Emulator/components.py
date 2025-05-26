@@ -87,7 +87,7 @@ class Capacitor:
 class Oscilloscope:
     def __init__(self, node_name):
         self.node= node_name
-        self.trace= [] # initialize the set to hold the voltage trace
+        self.trace= [] # initialize a list to hold the voltage trace
     
     # Record the voltage
     def record(self, node_voltages):
@@ -99,6 +99,7 @@ class Oscilloscope:
     def plot(self, dt):
         import matplotlib.pyplot as plt
         time= [i * dt for i in range(len(self.trace))]
+        plt.style.use('dark_background')
         plt.plot(time, self.trace)
         plt.title('Voltage at node')
         plt.xlabel('Time (s)')
