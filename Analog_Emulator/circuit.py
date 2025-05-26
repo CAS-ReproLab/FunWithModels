@@ -69,17 +69,23 @@ class Circuit:
             G= [[0.0 for _ in range(size)] for _ in range(size)]
             I= [0.0 for _ in range(size)]
             
+            time= _ * dt # current simulation time
+            
             for comp in self.components: 
-                if hasattr(comp, 'V'): 
-                    idx= len(nodes) + self.voltage_sources.index(comp)
-                    comp.stamp(G, I, node_map, idx)
-                elif hasattr(comp, 'stamp'):
-                    # pass the parameters to the capacitors only
-                    if isinstance(comp, Capacitor): 
+                # update sensor driven voltages
+                if hasattr(comp, 'update'): 
+                    comp.update(time)
+                    
+                # only stamp components that have a stamp() method
+                if hasattr(comp, 'stamp'):
+                    if isinstance(comp, Capacitor):
                         comp.stamp(G, I, node_map, dt, voltage_lookup)
+                    elif hasattr(comp, 'V'):
+                        idx= len(nodes) + self.voltage_sources.index(comp)
+                        comp.stamp(G, I, node_map, idx)
                     else: 
                         comp.stamp(G, I, node_map)
-                        
+                      
             G= np.array(G) # convert to numpy array to solve wiht linalg
             I= np.array(I)
             x= np.linalg.solve(G, I)
@@ -94,7 +100,7 @@ class Circuit:
                 scope.record(self.node_voltages)
             
             self.node_voltages['GND']= 0.0
-
+        
     def print_node_voltages(self):
         print("Node Voltages:")
         for node, voltage in self.node_voltages.items():

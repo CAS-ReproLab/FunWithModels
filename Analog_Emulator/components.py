@@ -82,7 +82,17 @@ class Capacitor:
         if n1 is not None and n2 is not None: 
             G[n1][n2] -= Gval
             G[n2][n1] -= Gval
+            
+class Sensor:
+    def __init__(self, target_source, voltage_function):
+        # voltage_function is a callable F(t) that is designated in main.py
+        self.target_source= target_source
+        self.voltage_function= voltage_function
         
+    def update(self, t): 
+        # update voltage based on current time
+        self.target_source.V= self.voltage_function(t)
+    
             
 class Oscilloscope:
     def __init__(self, node_name):

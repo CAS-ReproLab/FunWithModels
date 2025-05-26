@@ -6,45 +6,40 @@ Created on Sat May 17 11:32:13 2025
 @author: cas108
 """
 
-from components import VoltageSource, Resistor, Capacitor, Oscilloscope
+from components import VoltageSource, Resistor, Capacitor, Oscilloscope, Sensor
 
 from circuit import Circuit
 
+import math
+
+# Define the time varying input signal at the voltage source
+def sensor_input(t):
+    return 0.5 * math.sin(2 * math.pi * 1 * t) + 0.5 # oscillates from 0 to 1V
+
+# Create the circuit
 ckt= Circuit()
 
-# Simple steady state divider; uses simulate()
-'''
-# Create a voltage dividor: 5V -> R1 -> out -> R2 -> GND
-ckt.add_component(VoltageSource(5.0, 'V+', 'GND'))
-ckt.add_component(Resistor(1000, 'V+', 'OUT'))
-ckt.add_component(Resistor(2000, 'OUT', 'GND'))
-'''
+# Add voltage souce that starts at 0
+Vsrc= VoltageSource(0.0, 'V_IN', 'GND')
+ckt.add_component(Vsrc)
 
-# Analog Integrator Vrsc -> R -> node -> C -> GND
-ckt.add_component(VoltageSource(1.0, 'V_IN', 'GND')) # step input
-ckt.add_component(Resistor(1000, 'V_IN', 'OUT')) # 1 kilaOhm resistance
-ckt.add_component(Capacitor(1e-6, 'OUT', 'GND')) # 1 micro Faraday capacitance
+# attach the Sensor (voltage modulator)
+mod= Sensor(Vsrc, sensor_input)
+ckt.add_component(mod)
+
+# add the RC integrator
+rst= Resistor(1000, 'V_IN', 'OUT')
+ckt.add_component(rst)
+cpctr= Capacitor(1e-6, 'OUT', 'GND')
+ckt.add_component(cpctr)
 
 # Add oscilloscope device at OUT
 osc= Oscilloscope('OUT')
 ckt.add_oscilloscopes(osc)
 
-'''
-# Simulate the simple divider circuit at steady state
-ckt.simulate()
-
-# print results
-ckt.print_node_voltages()
-'''
-
 # Non-steady state simulation for 10 ms
-ckt.simulate_transient(dt= 0.0001, T= 0.01)
+ckt.simulate_transient(dt= 0.0001, T= 1.0)
 
-'''
-# check the output
-print("Number of samples recorded:", len(osc.trace))
-print("First 10 values:", osc.trace[:10])
-'''
 
 # plot the results on the oscilloscope
 osc.plot(dt= 0.001)
