@@ -26,7 +26,9 @@ class Circuit:
         if hasattr(component, 'V'):
             self.voltage_sources.append(component)
         
-        
+    '''    
+    # static simulation left over from early development
+    
     def simulate(self): 
         nodes= list(self.nodes - {'GND'}) # GND is reference
         node_map= {node: idx for idx, node in enumerate(nodes)}
@@ -55,7 +57,7 @@ class Circuit:
         self.node_voltages = {'GND': 0.0}
         for node, idx in node_map.items():
             self.node_voltages[node] = x[idx]
-            
+    '''        
     def simulate_transient(self, dt= 0.001, T= 0.05):
         steps= int(T / dt)
         nodes= list(self.nodes - {'GND'})

@@ -7,14 +7,10 @@ Created on Sat May 17 11:32:13 2025
 """
 
 from components import VoltageSource, Resistor, Capacitor, Oscilloscope, Sensor
-
+from signals import gaussian_pulse
 from circuit import Circuit
 
 import math
-
-# Define the time varying input signal at the voltage source
-def sensor_input(t):
-    return 0.5 * math.sin(2 * math.pi * 1 * t) + 0.5 # oscillates from 0 to 1V
 
 # Create the circuit
 ckt= Circuit()
@@ -24,7 +20,8 @@ Vsrc= VoltageSource(0.0, 'V_IN', 'GND')
 ckt.add_component(Vsrc)
 
 # attach the Sensor (voltage modulator)
-mod= Sensor(Vsrc, sensor_input)
+# call from the list of importable functions in signals.py
+mod= Sensor(Vsrc, lambda t: gaussian_pulse(t, t0=0.5, width=0.1, amplitude= 1.0))
 ckt.add_component(mod)
 
 # add the RC integrator
@@ -37,8 +34,8 @@ ckt.add_component(cpctr)
 osc= Oscilloscope('OUT')
 ckt.add_oscilloscopes(osc)
 
-# Non-steady state simulation for 10 ms
-ckt.simulate_transient(dt= 0.0001, T= 1.0)
+# Non-steady state simulation for time (T)
+ckt.simulate_transient(dt= 0.001, T= 1.0)
 
 
 # plot the results on the oscilloscope
