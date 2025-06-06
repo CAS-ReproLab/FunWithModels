@@ -7,6 +7,17 @@ Created on Mon May 26 17:17:39 2025
 
 import math
 import random
+import numpy as np
+
+# Constant (step) input
+def constant(t, V=1.0, noise=True, sigma= 0.1):
+    if noise == True:
+        n_t= np.random.normal(0, sigma)
+        
+    if noise == False: 
+        n_t= 0
+        
+    return V + n_t
 
 # Step Function
 def step_input(t, t0= 0.1, amplitude= 1.0): 
@@ -41,5 +52,10 @@ def noise(t, amplitude= 1.0):
     return random.uniform(-amplitude, amplitude)
 
 # Gaussian Pulse
-def gaussian_pulse(t, t0=0.5, width=0.1, amplitude= 1.0):
-    return amplitude * math.exp(-((t-t0) **2) / (2 * width **2))
+def gaussian_pulse(t, t0=0.5, width=0.1, amplitude= 1.0, sigma= 0.1, noise= True):
+    if noise == True:
+        n_t= np.random.normal(0, sigma)
+        
+    if noise == False: 
+        n_t= 0
+    return amplitude * math.exp(-((t-t0) **2) / (2 * width **2)) + n_t

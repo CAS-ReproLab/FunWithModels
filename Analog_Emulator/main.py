@@ -10,8 +10,6 @@ from components import VoltageSource, Resistor, Capacitor, Oscilloscope, Sensor
 from signals import gaussian_pulse
 from circuit import Circuit
 
-import math
-
 # Create the circuit
 ckt= Circuit()
 
@@ -21,7 +19,8 @@ ckt.add_component(Vsrc)
 
 # attach the Sensor (voltage modulator)
 # call from the list of importable functions in signals.py
-mod= Sensor(Vsrc, lambda t: gaussian_pulse(t, t0=0.5, width=0.1, amplitude= 1.0))
+signal_fn= lambda t: gaussian_pulse(t, t0=0.5, width=0.1, amplitude= 1.0, sigma= 0.1, noise= True)
+mod= Sensor(Vsrc, signal_fn)
 ckt.add_component(mod)
 
 # add the RC integrator
@@ -31,14 +30,14 @@ cpctr= Capacitor(1e-6, 'OUT', 'GND')
 ckt.add_component(cpctr)
 
 # Add oscilloscope device at OUT
-osc= Oscilloscope('OUT')
+osc= Oscilloscope('OUT', signal_function=None)
 ckt.add_oscilloscopes(osc)
 
 # Non-steady state simulation for time (T)
-ckt.simulate_transient(dt= 0.001, T= 1.0)
+ckt.simulate_transient(dt= 0.0001, T= 2.0)
 
 
 # plot the results on the oscilloscope
-osc.plot(dt= 0.001)
+osc.plot(dt= 0.0001)
 
 

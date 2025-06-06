@@ -86,7 +86,7 @@ class Circuit:
                         idx= len(nodes) + self.voltage_sources.index(comp)
                         comp.stamp(G, I, node_map, idx)
                     else: 
-                        comp.stamp(G, I, node_map)
+                        comp.stamp(G, I, node_map, dt, voltage_lookup) # changes dt, voltage_lookup
                       
             G= np.array(G) # convert to numpy array to solve wiht linalg
             I= np.array(I)
@@ -99,7 +99,7 @@ class Circuit:
             
             # record with oscilloscope if in circuit
             for scope in self.scopes:
-                scope.record(self.node_voltages)
+                scope.record(self.node_voltages, time= time)
             
             self.node_voltages['GND']= 0.0
         
