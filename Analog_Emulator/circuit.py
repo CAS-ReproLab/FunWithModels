@@ -25,39 +25,7 @@ class Circuit:
                 self.nodes.add(getattr(component, attr))
         if hasattr(component, 'V'):
             self.voltage_sources.append(component)
-        
-    '''    
-    # static simulation left over from early development
-    
-    def simulate(self): 
-        nodes= list(self.nodes - {'GND'}) # GND is reference
-        node_map= {node: idx for idx, node in enumerate(nodes)}
-        size= len(nodes) + len(self.voltage_sources)
-        
-        G= [[0.0 for _ in range(size)] for _ in range(size)]
-        I= [0.0 for _ in range(size)]
-        
-        # Stamp passive components
-        for comp in self.components:
-            if hasattr(comp, 'stamp'):
-                if hasattr(comp, 'V'):
-                    idx = len(nodes) + self.voltage_sources.index(comp)
-                    comp.stamp(G, I, node_map, idx)
-                else:
-                    comp.stamp(G, I, node_map)
-                
-        # Solve Gx = I
-        G = np.array(G)
-        print(G)
-        I = np.array(I)
-        print(I)
-        x = np.linalg.solve(G, I)
 
-        # Map results to voltages
-        self.node_voltages = {'GND': 0.0}
-        for node, idx in node_map.items():
-            self.node_voltages[node] = x[idx]
-    '''        
     def simulate_transient(self, dt= 0.001, T= 0.05):
         steps= int(T / dt)
         nodes= list(self.nodes - {'GND'})
