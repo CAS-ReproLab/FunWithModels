@@ -56,6 +56,36 @@ class Resistor:
             G[n1][n2]-= conductance
             G[n2][n1]-= conductance
             
+class Inductor: 
+    def __init__(self, inductance, node1, node2):
+        self.L= inductance
+        self.node1= node1
+        self.node2= node2
+        self.current= 0.0 # current through the inductor
+        
+    def stamp(self, G, I, node_map, dt, voltage_lookup): 
+        n1= node_map.get(self.node1)
+        n2= node_map.get(self.node2)
+        
+        conductance= dt / self.L
+        if n1 is not None: 
+            G[n1][n1] += conductance
+        if n2 is not None:
+            G[n2][n1] += conductance
+        if n1 is not None and n2 is not None: 
+            G[n1][n2] -= conductance
+            G[n2][n1] -= conductance
+            
+        # Source vector stamping
+        v1= voltage_lookup.get(self.node1, 0.0)
+        v2= voltage_lookup.get(self.node2, 0.0)
+        I_source= self.current + conductance * (v1- v2)
+            
+        # update the inductor current for the next step
+        self.current= I_source
+            
+        
+            
 class Capacitor:
     def __init__(self, capacitance, node1, node2):
         self.C= capacitance

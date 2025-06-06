@@ -9,6 +9,7 @@ Created on Sat May 17 11:49:42 2025
 import numpy as np
 from components import Capacitor
 
+
 class Circuit: 
     def __init__(self): 
         self.components= []
