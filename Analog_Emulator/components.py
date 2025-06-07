@@ -14,7 +14,7 @@ class VoltageSource:
         self.node_neg= node_neg # negative node
         
     # V_pos - V_neg = V_source    
-    def stamp(self, G, I , node_map, current_index, dt = None, voltage_lookpu= None):
+    def stamp(self, G, I , node_map, current_index, dt = None, voltage_lookup= None):
         p= node_map.get(self.node_pos) # index for pos node
         n= node_map.get(self.node_neg) # index for neg node
         row= current_index # index for source voltage
@@ -67,31 +67,43 @@ class Inductor:
         n1= node_map.get(self.node1)
         n2= node_map.get(self.node2)
         
+        if self.L == 0: 
+            raise ValueError('Inductance must be non-zero')
+        
         conductance= dt / self.L
+        
+        # stamp the G matrix
         if n1 is not None: 
             G[n1][n1] += conductance
         if n2 is not None:
-            G[n2][n1] += conductance
+            G[n2][n2] += conductance
         if n1 is not None and n2 is not None: 
             G[n1][n2] -= conductance
             G[n2][n1] -= conductance
             
-        # Source vector stamping
+        # stamp the 'old' inductor current
+        i_old= self.current
+        if n1 is not None: 
+            I[n1]-= i_old
+        if n2 is not None: 
+            I[n2]+= i_old
+            
+        # update the inductor's state for the next time step
         v1= voltage_lookup.get(self.node1, 0.0)
         v2= voltage_lookup.get(self.node2, 0.0)
-        I_source= self.current + conductance * (v1- v2)
+        
+        # update the current estimate using backward Euler
+        I_source= i_old + conductance * (v1- v2)
             
         # update the inductor current for the next step
         self.current= I_source
-            
-        
+               
             
 class Capacitor:
     def __init__(self, capacitance, node1, node2):
         self.C= capacitance
         self.node1= node1
         self.node2= node2
-        self.v_prev= 0.0 #voltage across the capacitor at the previous timestep
         
     def stamp(self, G, I , node_map, dt= None, voltage_lookup= None):
         n1= node_map.get(self.node1)

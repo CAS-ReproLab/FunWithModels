@@ -29,7 +29,8 @@ class Circuit:
 
     def simulate_transient(self, dt= 0.001, T= 0.05):
         steps= int(T / dt)
-        nodes= list(self.nodes - {'GND'})
+        #nodes= list(self.nodes - {'GND'})
+        nodes= sorted(self.nodes - {'GND'})
         node_map= {node: idx for idx, node in enumerate(nodes)}
         size= len(nodes) + len(self.voltage_sources)
         
@@ -42,11 +43,14 @@ class Circuit:
             
             time= _ * dt # current simulation time
             
+            # update time dependent sources
             for comp in self.components: 
                 # update sensor driven voltages
                 if hasattr(comp, 'update'): 
                     comp.update(time)
-                    
+            
+            # build MNA stamps
+            for comp in self.components:    
                 # only stamp components that have a stamp() method
                 if hasattr(comp, 'stamp'):
                     if isinstance(comp, Capacitor):
@@ -56,6 +60,7 @@ class Circuit:
                         comp.stamp(G, I, node_map, idx)
                     else: 
                         comp.stamp(G, I, node_map, dt, voltage_lookup) # changes dt, voltage_lookup
+                
                       
             G= np.array(G) # convert to numpy array to solve wiht linalg
             I= np.array(I)
