@@ -42,7 +42,7 @@ osc= Oscilloscope('OUT', signal_function=signal_fn)
 ckt.add_oscilloscopes(osc)
 
 # Non-steady state simulation for time (T)
-ckt.simulate_transient(dt= 1e-6, T= 0.1)
+ckt.simulate_transient(dt= 1e-6, T= 0.001)
 
 # plot the results on the oscilloscope
 osc.plot(dt= 1e-6)
