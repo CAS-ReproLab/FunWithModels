@@ -7,7 +7,7 @@ Created on Sat May 17 11:32:13 2025
 """
 
 from components import VoltageSource, Resistor, Capacitor, Inductor, Oscilloscope, Sensor
-from signals import sine_wave
+from signals import pulse
 from circuit import Circuit
 
 # Create the circuit
@@ -19,29 +19,30 @@ ckt.add_component(Vsrc)
 
 # attach the Sensor (voltage modulator)
 # call from the list of importable functions in signals.py
-signal_fn= lambda t: sine_wave(t, freq= 5033, amplitude= 1.0, offset= 0.0)
+signal_fn= lambda t: pulse(t, t_start= 0.1e-4, duration= 1e-4, amplitude= 1.0)
 mod= Sensor(Vsrc, signal_fn)
 ckt.add_component(mod)
 
-# Make an RLC circuit
-rst= Resistor(1000, 'V_IN', 'OUT') # Ohms
+'''
+# Add a resistor
+rst= Resistor(100, 'V_IN', 'OUT') # Ohms
 ckt.add_component(rst)
-
-ind= Inductor(1e-3, 'OUT', 'L_OUT') # Henrys
+'''
+# Add an inductor
+ind= Inductor(1e-3, 'V_IN', 'OUT') # Henrys
 ckt.add_component(ind)
 
-cpctr= Capacitor(1e-6, 'L_OUT', 'GND') # Farads
+# Add a capacitor
+cpctr= Capacitor(1e-6, 'OUT', 'GND') # Farads
 ckt.add_component(cpctr)
 
 
 # Add oscilloscope device at OUT
-osc= Oscilloscope('L_OUT', signal_function=signal_fn)
+osc= Oscilloscope('OUT', signal_function=signal_fn)
 ckt.add_oscilloscopes(osc)
 
 # Non-steady state simulation for time (T)
-ckt.simulate_transient(dt= 1e-6, T= 5e-3)
-
-
+ckt.simulate_transient(dt= 1e-6, T= 0.1)
 
 # plot the results on the oscilloscope
 osc.plot(dt= 1e-6)
