@@ -19,7 +19,7 @@ ckt.add_component(Vsrc)
 
 # attach the Sensor (voltage modulator)
 # call from the list of importable functions in signals.py
-signal_fn= lambda t: pulse(t, t_start= 0.1e-4, duration= 1e-1, amplitude= 1.0)
+signal_fn= lambda t: pulse(t, t_start= 0.1e-4, duration= .1, amplitude= 1.0)
 mod= Sensor(Vsrc, signal_fn)
 ckt.add_component(mod)
 
@@ -42,7 +42,7 @@ osc= Oscilloscope('OUT', signal_function=signal_fn)
 ckt.add_oscilloscopes(osc)
 
 # Non-steady state simulation for time (T)
-ckt.simulate_transient(dt= 1e-3, T= 10)
+ckt.simulate_transient(dt= 1e-3, T= 4)
 
 # plot the results on the oscilloscope
 osc.plot(dt= 1e-3)
