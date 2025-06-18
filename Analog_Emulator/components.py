@@ -130,6 +130,7 @@ class Capacitor:
          
 class Diode:
     def __init__(self, node_a, node_k, I_s=1e-15, n=1.0, V_t=25e-3):
+        ''' I_s= reverse bias saturation, n= ideality factor, V_t= thermal voltage at (room temperature)'''
         self.node_a= node_a
         self.node_k= node_k
         self.I_s= I_s
