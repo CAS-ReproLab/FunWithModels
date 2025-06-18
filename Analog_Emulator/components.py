@@ -6,6 +6,9 @@ Created on Sat May 17 11:34:37 2025
 @author: cas108
 """
 
+import numpy as np
+import matplotlib.pyplot as plt
+
 class VoltageSource:
     
     def __init__(self, voltage, node_pos, node_neg):
@@ -124,6 +127,43 @@ class Capacitor:
         if n1 is not None and n2 is not None: 
             G[n1][n2] -= Gval
             G[n2][n1] -= Gval
+         
+class Diode:
+    def __init__(self, node_a, node_k, I_s=1e-15, n=1.0, V_t=25e-3):
+        self.node_a= node_a
+        self.node_k= node_k
+        self.I_s= I_s
+        self.n= n
+        self.V_t= V_t
+        
+    def stamp(self, G, I, node_map, dt=None, voltage_lookup=None):
+        Va= voltage_lookup.get(self.node_a, 0.0)
+        Vk= voltage_lookup.get(self.node_k, 0.0)
+        Vd= Va - Vk
+        
+        # Diode current and small-signal conductance
+        Id= self.I_s * (np.exp(Vd /( self.n * self.V_t)) - 1)
+        gd= (self.I_s / (self.n * self.V_t)) * np.exp(Vd / (self.n * self.V_t))
+        
+        na= node_map.get(self.node_a)
+        nk= node_map.get(self.node_k)
+        
+        # Stamp the G matrix
+        if na is not None: 
+            G[na][na] += gd
+            if nk is not None:
+                G[na][nk] -= gd
+        if nk is not None: 
+            G[nk][nk] += gd
+            if na is not None: 
+                G[nk][na] -= gd
+                
+        # Stamp the I vector (subtract the linearized term)
+        I_term= Id - gd * Vd
+        if na is not None: 
+            I[na] -= I_term
+        if nk is not None: 
+            I[nk] += I_term
             
 class Sensor:
     def __init__(self, target_source, voltage_function):
@@ -156,7 +196,6 @@ class Oscilloscope:
             self.input_trace.append(self.signal_function(time))
             
     def plot(self, dt):
-        import matplotlib.pyplot as plt
         time= [i * dt for i in range(len(self.output_trace))] # will be same for both traces
         plt.style.use('dark_background')
         plt.plot(time, self.output_trace, label='output (V_OUT)')
