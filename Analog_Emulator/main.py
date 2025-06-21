@@ -52,10 +52,12 @@ osc= Oscilloscope('C_OUT', signal_function=signal_fn)
 ckt.add_oscilloscopes(osc)
 
 # Non-steady state simulation for time (T)
-ckt.simulate_transient(dt= 1e-3, T= 10)
+ckt.simulate_transient(dt= 1e-3, T= 3)
 
 
-# plot the results on the oscilloscope
+# Static plot of the results on the oscilloscope
 osc.plot(dt= 1e-3)
 
+# Animated plot of the results on the oscilloscope
+osc.plot_anim(dt= 1e-3, filename='Oscilloscope.mp4', frame_skip=10, playback_fps=10, interval_ms=30)
 

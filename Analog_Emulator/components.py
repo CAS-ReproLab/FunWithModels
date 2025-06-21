@@ -8,6 +8,8 @@ Created on Sat May 17 11:34:37 2025
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from IPython.display import Video, display
 
 class VoltageSource:
     
@@ -208,5 +210,77 @@ class Oscilloscope:
         plt.legend()
         plt.grid(True)
         plt.show()
+        
+    def plot_anim(self, dt, filename= 'Oscilloscope.mp4', frame_skip= 5, playback_fps=15, interval_ms=50):
+        time= [i * dt for i in range(len(self.output_trace))] # will be same for both traces
+        output= self.output_trace
+        input_signal= self.input_trace if self.signal_function is not None else None
+        
+        # skip frames for faster recording
+        skip_indices= list(range(0, len(time), frame_skip))
+        time_skipped= [time[i] for i in skip_indices]
+        output_skipped= [output[i] for i in skip_indices]
+        input_skipped= [input_signal[i] for i in skip_indices] if input_signal else None
+        
+        # set y_value limits automatically
+        y_values= output_skipped.copy()
+        if input_skipped:
+            y_values.extend(input_skipped)
+        y_min= min(y for y in y_values if y is not None)
+        y_max= max(y for y in y_values if y is not None)
+        
+        # Set plotting style
+        plt.style.use('dark_background')
+
+        # Initialize the plot
+        fig, ax = plt.subplots(figsize=(12, 6))
+
+
+        # Set plot limits
+        ax.set_xlim(min(time_skipped), max(time_skipped))
+        ax.set_ylim(y_min - 0.1, y_max + 0.1)
+
+        # Set labels
+        ax.set_xlabel('Time (s)')
+        ax.set_ylabel('Voltage (V)')
+        ax.set_title('Tektronix')
+        
+        output_line, = ax.plot([], [], color='orange', label= 'Output (V_OUT)')
+        input_line= None
+        
+        if input_skipped: 
+            input_line, = ax.plot([], [], 'm--', label= 'Input (V_IN)')
+
+        ax.legend()
+        ax.grid(True)        
+
+        # Initialization function
+        def init():
+            output_line.set_data([], [])
+            if input_line:
+                input_line.set_data([], [])
+            return (output_line,) if not input_line else (output_line, input_line)
+
+
+        # Animation function
+        def animate(i):
+            # Update the trajectory line
+            output_line.set_data(time_skipped[:i], output_skipped[:i])
+            if input_line:
+                input_line.set_data(time_skipped[:i], input_skipped[:i])
+            return (output_line,) if not input_line else (output_line, input_line)
+
+        # Create the animation
+        # interval is how long each frame is shown, shorter means faster playback
+        ani = animation.FuncAnimation(fig, animate, init_func=init, frames=len(skip_indices), interval=interval_ms, blit=True)
+
+        # Save the animation (optional)
+        # fps determines how many total frames are saved. lower value means faster saving.
+        ani.save(filename, writer='ffmpeg', fps=playback_fps)
+        plt.close(fig)
+        display(Video(filename, embed=True))
+
+    
+
         
         
