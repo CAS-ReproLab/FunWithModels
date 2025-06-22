@@ -6,58 +6,50 @@ Created on Sat May 17 11:32:13 2025
 @author: cas108
 """
 
-from components import VoltageSource, Resistor, Capacitor, Inductor, Diode, Oscilloscope, Sensor
+from components import VoltageSource, Resistor, Capacitor, Inductor, Diode, Oscilloscope, Transistor, Sensor
 from signals import pulse
 from circuit import Circuit
 
 # Create the circuit
 ckt= Circuit()
 
-# Add voltage souce that starts at 0
-Vsrc= VoltageSource(0.0, 'V_IN', 'GND')
+# DC supply: VCC = 5 V
+Vsrc= VoltageSource(5.0, 'VCC', 'GND')
 ckt.add_component(Vsrc)
 
-
-# attach the Sensor (voltage modulator)
-# call from the list of importable functions in signals.py
-signal_fn= lambda t: pulse(t, t_start= 1e-4, duration= 0.1, amplitude= 1.0)
-mod= Sensor(Vsrc, signal_fn)
-ckt.add_component(mod)
+# Collector resistor node VCC to node C
+rc= Resistor(2e3, 'VCC', 'C') # Ohms
+ckt.add_component(rc)
 
 
-# Add a resistor
-rst= Resistor(0.1, 'V_IN', 'RES') # Ohms
-ckt.add_component(rst)
+# Base resistor node VCC to node B
+rb= Resistor(1e5, 'VCC', 'B') # Ohms
+ckt.add_component(rb)
 
+# Transistor: collector = C, base = B, emitter = GND
+q1= Transistor('C', 'B', 'GND')
+ckt.add_component(q1)
 
+# input source at the transistor base (starts at 0 V)
+vin= VoltageSource(0.0, 'B', 'GND')
+ckt.add_component(vin)
 
-# Add an inductor
-ind= Inductor(0.25, 'RES', 'C_OUT') # Henrys
-ckt.add_component(ind)
+# Step input to the transistor
+step_fn= lambda t: pulse(t, t_start= 0.5e-3, duration= 2e-3, amplitude= 0.7)
+sensor_in= Sensor(vin, voltage_function=step_fn)
+ckt.add_component(sensor_in)
 
-
-
-# Add a capacitor
-cpctr= Capacitor(0.5, 'C_OUT', 'GND') # Farads
-ckt.add_component(cpctr)
-
-'''
-# Add a diode
-dde= Diode('NODE', 'GND', I_s= 1e-15, n= 1.0, V_t= 25e-3)
-ckt.add_component(dde)
-'''
-
-# Add oscilloscope device at OUT
-osc= Oscilloscope('C_OUT', signal_function=signal_fn)
+# Add oscilloscope device at the collector
+osc= Oscilloscope('C', signal_function=step_fn)
 ckt.add_oscilloscopes(osc)
 
 # Non-steady state simulation for time (T)
-ckt.simulate_transient(dt= 1e-3, T= 3)
+ckt.simulate_transient(dt= 1e-6, T= 2e-3)
 
 
 # Static plot of the results on the oscilloscope
-osc.plot(dt= 1e-3)
+osc.plot(dt= 1e-6)
 
 # Animated plot of the results on the oscilloscope
-osc.plot_anim(dt= 1e-3, filename='Oscilloscope.mp4', frame_skip=10, playback_fps=10, interval_ms=30)
+#osc.plot_anim(dt= 1e-3, filename='Oscilloscope.mp4', frame_skip=10, playback_fps=10, interval_ms=30)
 

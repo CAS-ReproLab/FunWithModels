@@ -168,6 +168,84 @@ class Diode:
         if nk is not None: 
             I[nk] += I_term
             
+    def current_and_conductance(self, voltage_lookup):
+        '''returns current and small signal conductance for use in transistor class'''
+        Va= voltage_lookup.get(self.node_a, 0.0)
+        Vk= voltage_lookup.get(self.node_k, 0.0)
+        Vd= Va - Vk
+        # calc diode current
+        Id= self.I_s * (np.exp(Vd/(self.n * self.V_t)) - 1)
+        # calc small-signal conductance
+        gd= (self.I_s/(self.n * self.V_t)) * np.exp(Vd/(self.n * self.V_t))
+        return Id, gd
+    
+class Transistor:
+    def __init__(self, collector, base, emitter, I_s= 1e-15, alpha_f= 0.99, alpha_r= 0.5, n= 1.0, V_t= 25e-3):
+        self.node_c= collector
+        self.node_b= base
+        self.node_e= emitter
+        self.alpha_f= alpha_f
+        self.alpha_r= alpha_r
+        
+        # two diode objects share the same I_s, n, and V_t
+        self.di_be= Diode(base, emitter, I_s, n, V_t)
+        self.di_bc= Diode(base, collector, I_s, n, V_t)
+        
+    def stamp(self, G, I, node_map, dt= None, voltage_lookup= None):
+        # get raw diode currents and conductances
+        I_BE, g_BE= self.di_be.current_and_conductance(voltage_lookup)
+        I_BC, g_BC= self.di_bc.current_and_conductance(voltage_lookup)
+        
+        # Ebers-Moll emitter, base, collector currents
+        I_E= I_BE - (1.0 / self.alpha_r) * I_BC
+        I_C= self.alpha_f * I_BE - I_BC
+        I_B= -(I_E + I_C)
+        
+        # get the node voltages
+        Vb =  voltage_lookup.get(self.node_b, 0.0)
+        Ve = voltage_lookup.get(self.node_e, 0.0)
+        Vc = voltage_lookup.get(self.node_c, 0.0)
+        
+        
+        # small-signal partials
+        # Emitter
+        dE_dVb= g_BE
+        dE_dVe= -g_BE
+        dE_dVc= -(1.0 / self.alpha_r) * g_BC
+        
+        # Collector
+        dC_dVb= self.alpha_f * g_BE
+        dC_dVe= -self.alpha_f * g_BE
+        dC_dVc= g_BC
+        
+        # Base
+        dB_dVb= -(dE_dVb + dC_dVb)
+        dB_dVe= -(dE_dVe + dC_dVe)
+        dB_dVc= -(dE_dVc + dC_dVc)
+        
+        # map the node names to indices
+        n_c= node_map.get(self.node_c)
+        n_b= node_map.get(self.node_b)
+        n_e= node_map.get(self.node_e)
+        
+        # stamp KCL for C, B, and E rows
+        for (idx, I_x, dVb, dVe, dVc) in [
+            (n_c, -I_C, -dC_dVb, -dC_dVe, -dC_dVc),
+            (n_b, I_B, dB_dVb, dB_dVe, dB_dVc),
+            (n_e, I_E, dE_dVb, dE_dVe, dE_dVc)]:
+            
+            if idx is None: 
+                continue
+            
+            # G matrix entries
+            if n_b is not None: G[idx][n_b] -= dVb
+            if n_e is not None: G[idx][n_e] -= dVe
+            if n_c is not None: G[idx][n_c] -= dVc
+            
+            # I vector residual
+            # I[idx] += I_x - (dVb * voltage_lookup.get(self.node_b, 0.0)) + (dVe * voltage_lookup.get(self.node_e, 0.0)) + (dVc * voltage_lookup.get(self.node_c, 0.0))
+            I[idx] += I_x - (dVb * Vb + dVe * Ve + dVc * Vc)
+            
 class Sensor:
     def __init__(self, target_source, voltage_function):
         # voltage_function is a callable F(t) that is designated in main.py
