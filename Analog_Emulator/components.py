@@ -245,14 +245,14 @@ class Oscilloscope:
         ax.set_ylabel('Voltage (V)')
         ax.set_title('Tektronix')
         
-        output_line, = ax.plot([], [], color='orange', label= 'Output (V_OUT)')
+        output_line, = ax.plot([], [], color='#00FF00', label= 'Output (V_OUT)')
         input_line= None
         
         if input_skipped: 
-            input_line, = ax.plot([], [], 'm--', label= 'Input (V_IN)')
+            input_line, = ax.plot([], [], '#CFFF04', label= 'Input (V_IN)')
 
         ax.legend()
-        ax.grid(True)        
+        ax.grid(True, color='g')        
 
         # Initialization function
         def init():
